@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 命名空间是映射接口的全类名 -->
+<mapper namespace="cn.tf.csts.mapper.FilmMapper">
+    
+    <resultMap type="PaginationBean" id="PaginationBeanMap">
+        <result column="pageSize" property="pageSize"/>
+   	    <result column="currPage" property="currPage"/>
+   	    <collection property="rows" column="{pageSize=pageSize, currPage=currPage}"
+   	       ofType="FilmType" select="getPaginationFilms"/>   	    
+    </resultMap>
+    
+    <select id="getPartFilm"  parameterType="PaginationBean"  resultMap="PaginationBeanMap">
+        select count(1) total,ceil(count(1)/${pageSize})  totalPage,
+        ${pageSize} pageSize,${currPage} currPage from filmInfo1
+    </select>
+    
+    
+    <resultMap type="FilmInfo" id="FilmInfoMap">
+        <association property="filmType"   column="typeId"  select="getTypeById"></association>
+    </resultMap>
+    
+    
+    <select id="getPaginationFilms"  resultMap="FilmInfoMap">
+         select * from 
+		(select n.*, rownum rn from
+		(select * from filmInfo1) n where ${pageSize} * ${currPage} >= rownum )
+		where  rn > ( ${currPage} - 1) * ${pageSize}
+        
+    </select>
+    
+    <select id="getTypeById"    parameterType="int" resultType="FilmType">
+        select * from  filmType1  where typeId=#{typeId}
+    </select>
+
+</mapper>
